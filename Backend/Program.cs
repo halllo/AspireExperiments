@@ -1,0 +1,59 @@
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Scalar.AspNetCore;
+
+var builder = WebApplication.CreateBuilder(args);
+
+OpenTelemetryExtensions.ConfigureOpenTelemetry(builder);
+
+builder.Services.AddHealthChecks()
+	.AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+
+builder.Services.AddOpenApi();
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+	app.MapScalarApiReference();
+
+	// All health checks must pass for app to be considered ready to accept traffic after starting
+	app.MapHealthChecks("/health");
+
+	// Only health checks tagged with the "live" tag must pass for app to be considered alive
+	app.MapHealthChecks("/alive", new HealthCheckOptions
+	{
+		Predicate = r => r.Tags.Contains("live")
+	});
+}
+
+app.MapGet("/", () => Results.Redirect("/scalar"));
+
+app.MapGet("/weather", () =>
+{
+	string[] summaries =
+	[
+		"Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+	];
+    return Results.Json(Enumerable.Range(1, 5).Select(index => new WeatherForecast
+	{
+		Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+		TemperatureC = Random.Shared.Next(-20, 55),
+		Summary = summaries[Random.Shared.Next(summaries.Length)]
+	})
+	.ToArray());
+});
+
+app.Run();
+
+public class WeatherForecast
+{
+	public DateOnly Date { get; set; }
+
+	public int TemperatureC { get; set; }
+
+	public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+
+	public string? Summary { get; set; }
+}
