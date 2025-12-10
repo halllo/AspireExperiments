@@ -1,7 +1,14 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-builder.AddProject<Projects.Backend>("Backend");
+var backend = builder.AddProject<Projects.Backend>("Backend");
 
-builder.AddNpmApp("Frontend", "../Frontend").WithUrl("http://localhost:4200");
+var frontend = builder.AddViteApp("Frontend", "../Frontend");
+
+var gateway = builder.AddYarp("Gateway")
+                     .WithConfiguration(yarp =>
+                     {
+                        yarp.AddRoute("/frontend/{**catch-all}", frontend);
+                        yarp.AddRoute("/backend/{**catch-all}", backend);
+                     });
 
 builder.Build().Run();

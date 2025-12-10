@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Scalar.AspNetCore;
 
@@ -13,9 +14,20 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+app.UsePathBase("/backend");
+app.UseHeaderInspectionBefore();
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+	ForwardedHeaders =
+	  ForwardedHeaders.XForwardedFor
+	| ForwardedHeaders.XForwardedHost
+	| ForwardedHeaders.XForwardedProto
+});
+
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+	app.MapOpenApi();
 	app.MapScalarApiReference();
 
 	// All health checks must pass for app to be considered ready to accept traffic after starting
@@ -28,7 +40,16 @@ if (app.Environment.IsDevelopment())
 	});
 }
 
-app.MapGet("/", () => Results.Redirect("/scalar"));
+app.UseHeaderInspectionAfter();
+
+app.MapGet("/", (HttpContext context) =>
+{
+	//redirect requests to /backend to /backend/
+	if (string.IsNullOrWhiteSpace(context.Request.Path))
+		return Results.Redirect(context.Request.PathBase + "/");
+
+	return Results.Text("Hello from Backend!");
+});
 
 app.MapGet("/weather", () =>
 {
@@ -36,7 +57,7 @@ app.MapGet("/weather", () =>
 	[
 		"Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 	];
-    return Results.Json(Enumerable.Range(1, 5).Select(index => new WeatherForecast
+	return Results.Json(Enumerable.Range(1, 5).Select(index => new WeatherForecast
 	{
 		Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
 		TemperatureC = Random.Shared.Next(-20, 55),
