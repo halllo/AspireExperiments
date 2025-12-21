@@ -23,8 +23,8 @@ public static class Config
             ClientId = "web",
             ClientSecrets = { new Secret("secret".Sha256()) },
             AllowedGrantTypes = GrantTypes.Code,
-            RedirectUris = { "http://localhost:8080/backend/signin-oidc" },
-            PostLogoutRedirectUris = { "http://localhost:8080/backend/signout-callback-oidc" },
+            RedirectUris = { "https://localhost:8443/backend/signin-oidc" },
+            PostLogoutRedirectUris = { "https://localhost:8443/backend/signout-callback-oidc" },
             AllowedScopes =
             {
                 IdentityServerConstants.StandardScopes.OpenId,

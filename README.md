@@ -4,11 +4,7 @@ This experimental web application explores dotnet aspire with a dotnet backend, 
 
 ## Problems
 
-Currently the yarp gateway does not support a static port.
+Currently the yarp gateway does not directly support a static port.
 <https://github.com/dotnet/aspire/issues/13674>
 
-Without HTTPS we cannot use secure cookies. Without secure cookies we cannot use defaults.
-
-![alt text](image.png)
-
-We inline the YARP resource registration ([YarpResourceExtensionsWithHttpsPort](/AppHost/YarpResourceExtensionsWithHttpsPort.cs)) and apply the fix in our inlined code until the real solution is approved and merged.
+We can workaround this by registering a `BeforeStartEvent` in which we set the port.

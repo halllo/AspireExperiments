@@ -20,9 +20,8 @@ builder.Services.AddAuthentication(options =>
     .AddCookie("Cookies")
     .AddOpenIdConnect("oidc", options =>
     {
-        options.Authority = "http://localhost:8080/identity/";
-		options.RequireHttpsMetadata = false;
-
+        options.Authority = "https://localhost:8443/identity/";
+		
         options.ClientId = "web";
         options.ClientSecret = "secret";
         options.ResponseType = "code";
