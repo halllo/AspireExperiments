@@ -12,6 +12,32 @@ builder.Services.AddHealthChecks()
 
 builder.Services.AddOpenApi();
 
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultScheme = "Cookies";
+        options.DefaultChallengeScheme = "oidc";
+    })
+    .AddCookie("Cookies")
+    .AddOpenIdConnect("oidc", options =>
+    {
+        options.Authority = "http://localhost:8080/identity/";
+		options.RequireHttpsMetadata = false;
+
+        options.ClientId = "web";
+        options.ClientSecret = "secret";
+        options.ResponseType = "code";
+
+        options.Scope.Clear();
+        options.Scope.Add("openid");
+        options.Scope.Add("profile");
+
+        options.MapInboundClaims = false; // Don't rename claim types
+
+        options.SaveTokens = true;
+    });
+
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 app.UsePathBase("/backend");
@@ -42,6 +68,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHeaderInspectionAfter();
 
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapGet("/", (HttpContext context) =>
 {
 	//redirect requests to /backend to /backend/
@@ -65,6 +95,12 @@ app.MapGet("/weather", () =>
 	})
 	.ToArray());
 });
+
+app.MapGet("/me", (HttpContext httpContext) =>
+{
+	var user = httpContext.User.Claims.Select(c => new { c.Type, c.Value });
+	return Results.Json(user);
+}).RequireAuthorization();
 
 app.Run();
 
