@@ -2,8 +2,7 @@
 
 This experimental web application explores dotnet aspire with a dotnet backend, angular frontend, and yarp gateway.
 
-To run it with podman instead of docker:
+## Problems
 
-```bash
-export ASPIRE_CONTAINER_RUNTIME=podman
-```
+Currently the yarp gateway does not support a static port.
+<https://github.com/dotnet/aspire/issues/13674>
