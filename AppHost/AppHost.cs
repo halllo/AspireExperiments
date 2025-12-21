@@ -6,8 +6,10 @@ var backend = builder.AddProject<Projects.Backend>("Backend");
 
 var frontend = builder.AddViteApp("Frontend", "../Frontend");
 
-var gateway = builder.AddYarp("Gateway")
-                     .WithHostHttpsPort(8443)
+var gateway = builder
+                     //.AddYarp("Gateway")
+                     //.WithHttpsEndpoint(8443)
+                     .AddYarpWithHttpsHostPort("Gateway", 8443)
                      .WithHostPort(8080)
                      .WithConfiguration(yarp =>
                      {

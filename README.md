@@ -10,3 +10,5 @@ Currently the yarp gateway does not support a static port.
 Without HTTPS we cannot use secure cookies. Without secure cookies we cannot use defaults.
 
 ![alt text](image.png)
+
+We inline the YARP resource registration ([YarpResourceExtensionsWithHttpsPort](/AppHost/YarpResourceExtensionsWithHttpsPort.cs)) and apply the fix in our inlined code until the real solution is approved and merged.
