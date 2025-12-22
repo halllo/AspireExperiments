@@ -34,12 +34,6 @@ public class IndexModel : PageModel
 
     public async Task<ActionResult> OnGet()
     {
-        //Replace with an authorization policy check
-        if (HttpContext.Connection.IsRemote())
-        {
-            return NotFound();
-        }
-
         if (_sessionManagementService != null)
         {
             UserSessions = await _sessionManagementService.QuerySessionsAsync(new SessionQuery

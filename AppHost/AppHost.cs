@@ -9,6 +9,7 @@ var frontend = builder.AddViteApp("Frontend", "../Frontend");
 var gateway = builder.AddYarp("Gateway")
                      //.WithHostHttpsPort(8443) //https://github.com/dotnet/aspire/issues/13674
                      .WithHostPort(8080)
+                     .WithStaticFiles("../wwwroot")
                      .WithConfiguration(yarp =>
                      {
                         yarp.AddRoute("/identity/{**catch-all}", identity);
