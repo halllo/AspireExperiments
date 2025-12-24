@@ -8,8 +8,7 @@ import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
       <p>Adjust your preferences here.</p>
     </section>
   `,
-  styles: ``,
+  styles: [``],
 })
 export class SettingsComponent {
-  // Add settings logic here using signals if needed
 }
