@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, signal, inject, effect, computed, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, httpResource } from '@angular/common/http';
+import { environment } from '../../../environments/environment.development';
 
 @Component({
   selector: 'dashboard-root',
@@ -7,6 +8,15 @@ import { HttpClient } from '@angular/common/http';
     <section class="">
       <h1>Frontend</h1>
       <p>Welcome to this experimental view.</p>
+      <p>
+        @if (me.isLoading()) {
+          Loading...
+        } @else if (me.error()) {
+          Error: {{ me.error() }}
+        } @else {
+          Hello, {{ me.value() }}!
+        }
+      </p>
       <my-element></my-element>
     </section>
   `,
@@ -16,4 +26,5 @@ import { HttpClient } from '@angular/common/http';
 })
 export class DashboardComponent {
   private readonly http = inject(HttpClient);
+  protected readonly me = httpResource(() => environment.apiPath + '/me');
 }
