@@ -26,5 +26,5 @@ import { environment } from '../../../environments/environment.development';
 })
 export class DashboardComponent {
   private readonly http = inject(HttpClient);
-  protected readonly me = httpResource(() => environment.apiPath + '/me');
+  protected readonly me = httpResource(() => environment.apiPath + '/profile');
 }

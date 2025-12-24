@@ -1,17 +1,19 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, signal, inject } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
+import { HeaderComponent } from './components/header.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, HeaderComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
-  <main class="main">
-    @for (item of navigationItems; track $index) {
-      <button (click)="navigate(item.id)">{{ item.label }}</button>
-    }
-    <router-outlet />
-  </main>
+    <app-header />
+    <main class="main">
+      @for (item of navigationItems; track $index) {
+        <button (click)="navigate(item.id)">{{ item.label }}</button>
+      }
+      <router-outlet />
+    </main>
   `,
   styles: `
   `

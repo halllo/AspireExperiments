@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -13,27 +14,27 @@ builder.Services.AddHealthChecks()
 builder.Services.AddOpenApi();
 
 builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme = "Cookies";
-        options.DefaultChallengeScheme = "oidc";
-    })
-    .AddCookie("Cookies")
-    .AddOpenIdConnect("oidc", options =>
-    {
-        options.Authority = "https://localhost:8443/identity/";
-		
-        options.ClientId = "web";
-        options.ClientSecret = "secret";
-        options.ResponseType = "code";
+	{
+		options.DefaultScheme = "Cookies";
+		options.DefaultChallengeScheme = "oidc";
+	})
+	.AddCookie("Cookies")
+	.AddOpenIdConnect("oidc", options =>
+	{
+		options.Authority = "https://localhost:8443/identity/";
 
-        options.Scope.Clear();
-        options.Scope.Add("openid");
-        options.Scope.Add("profile");
+		options.ClientId = "web";
+		options.ClientSecret = "secret";
+		options.ResponseType = "code";
 
-        options.MapInboundClaims = false; // Don't rename claim types
+		options.Scope.Clear();
+		options.Scope.Add("openid");
+		options.Scope.Add("profile");
 
-        options.SaveTokens = true;
-    });
+		options.MapInboundClaims = false; // Don't rename claim types
+
+		options.SaveTokens = true;
+	});
 
 builder.Services.AddAuthorization();
 
@@ -95,11 +96,25 @@ app.MapGet("/weather", () =>
 	.ToArray());
 });
 
-app.MapGet("/me", (HttpContext httpContext) =>
+app.MapGet("/profile", (HttpContext httpContext) =>
 {
-	var user = httpContext.User.Claims.Select(c => new { c.Type, c.Value });
-	return Results.Json(user);
+	var claims = httpContext.User.Claims.Select(c => new { c.Type, c.Value });
+	return Results.Json(claims);
 }).RequireAuthorization();
+
+app.MapGet("/login", (HttpContext httpContext) =>
+{
+	return Results.Redirect("/frontend/");
+}).RequireAuthorization();
+
+app.MapGet("/logout", async (HttpContext httpContext) =>
+{
+	return Results.SignOut(
+		properties: new AuthenticationProperties { RedirectUri = "/frontend/" }, 
+		authenticationSchemes: ["Cookies", "oidc"]);
+}).RequireAuthorization();
+
+
 
 app.Run();
 
