@@ -9,19 +9,26 @@ import { environment } from '../../../environments/environment.development';
     <section class="">
       <h1>Dashboard</h1>
       <p>Welcome to this experimental view.</p>
-      <p>
-        @if (me.isLoading()) {
-          Loading...
-        } @else if (me.error()) {
-          Error: {{ me.error() }}
-        } @else {
-          {{ me.value() | json }}
-        }
-      </p>
+      @if (me.isLoading()) {
+        Loading...
+      } @else if (me.error()) {
+        Error
+      } @else {
+        <pre class="scrollable-pre">{{ me.value() | json }}</pre>
+      }
       <my-element></my-element>
     </section>
   `,
-  styles: [``],
+  styles: [`
+    .scrollable-pre {
+      max-height: 300px;
+      overflow: auto;
+      background: #f8f8f8;
+      border: 1px solid #ddd;
+      padding: 1em;
+      border-radius: 4px;
+    }
+  `],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [JsonPipe],

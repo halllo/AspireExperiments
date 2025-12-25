@@ -82,21 +82,6 @@ app.MapGet("/", (HttpContext context) =>
 	return Results.Text("Hello from Backend!");
 });
 
-app.MapGet("/weather", () =>
-{
-	string[] summaries =
-	[
-		"Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-	];
-	return Results.Json(Enumerable.Range(1, 5).Select(index => new WeatherForecast
-	{
-		Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-		TemperatureC = Random.Shared.Next(-20, 55),
-		Summary = summaries[Random.Shared.Next(summaries.Length)]
-	})
-	.ToArray());
-});
-
 app.MapGet("/profile", (HttpContext httpContext) =>
 {
 	var lookup = httpContext.User.Claims.ToLookup(c => c.Type, c => c.Value);
