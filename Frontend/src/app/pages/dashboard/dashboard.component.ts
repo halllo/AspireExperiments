@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, signal, inject, effect, computed, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { JsonPipe } from '@angular/common';
 import { HttpClient, httpResource } from '@angular/common/http';
 import { environment } from '../../../environments/environment.development';
 
@@ -6,7 +7,7 @@ import { environment } from '../../../environments/environment.development';
   selector: 'dashboard-root',
   template: `
     <section class="">
-      <h1>Frontend</h1>
+      <h1>Dashboard</h1>
       <p>Welcome to this experimental view.</p>
       <p>
         @if (me.isLoading()) {
@@ -14,7 +15,7 @@ import { environment } from '../../../environments/environment.development';
         } @else if (me.error()) {
           Error: {{ me.error() }}
         } @else {
-          Hello, {{ me.value() }}!
+          {{ me.value() | json }}
         }
       </p>
       <my-element></my-element>
@@ -23,6 +24,7 @@ import { environment } from '../../../environments/environment.development';
   styles: [``],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [JsonPipe],
 })
 export class DashboardComponent {
   private readonly http = inject(HttpClient);

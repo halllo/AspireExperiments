@@ -31,6 +31,7 @@ builder.Services.AddAuthentication(options =>
 		options.Scope.Add("openid");
 		options.Scope.Add("profile");
 
+		options.GetClaimsFromUserInfoEndpoint = true;
 		options.MapInboundClaims = false; // Don't rename claim types
 
 		options.SaveTokens = true;
@@ -98,8 +99,13 @@ app.MapGet("/weather", () =>
 
 app.MapGet("/profile", (HttpContext httpContext) =>
 {
-	var claims = httpContext.User.Claims.Select(c => new { c.Type, c.Value });
-	return Results.Json(claims);
+	var lookup = httpContext.User.Claims.ToLookup(c => c.Type, c => c.Value);
+	var claimsDict = new Dictionary<string, object>();
+	foreach (var group in lookup)
+	{
+		claimsDict[group.Key] = group.Count() == 1 ? group.First() : group.ToArray();
+	}
+	return Results.Json(claimsDict);
 }).RequireAuthorization();
 
 app.MapGet("/login", (HttpContext httpContext) =>

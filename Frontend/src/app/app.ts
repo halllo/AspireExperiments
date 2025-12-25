@@ -9,24 +9,15 @@ import { HeaderComponent } from './components/header.component';
   template: `
     <app-header />
     <main class="main">
-      @for (item of navigationItems; track $index) {
-        <button (click)="navigate(item.id)">{{ item.label }}</button>
-      }
       <router-outlet />
     </main>
   `,
   styles: `
+    .main {
+      margin: 1rem;
+    }
   `
 })
 export class App {
-  private readonly router = inject(Router);
   protected readonly title = signal('Frontend');
-  protected readonly navigationItems = [
-    { id: '', label: 'Dashboard', icon: 'fa-regular fa-chart-line' },
-    { id: 'settings', label: 'Settings', icon: 'fa-regular fa-gear' }
-  ];
-
-  navigate(target: string) {
-    this.router.navigate([target]);
-  }
 }
