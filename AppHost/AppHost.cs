@@ -20,10 +20,21 @@ var gateway = builder.AddYarp("Gateway")
                         yarp.AddRoute("/frontend/{**catch-all}", frontend);
                      });
 
+var externalFrontend = builder.AddViteApp("ExternalFrontend", "../ExternalFrontend");
+
+var externalGateway = builder.AddYarp("ExternalGateway")
+                     //.WithHostHttpsPort(9443) //https://github.com/dotnet/aspire/issues/13674
+                     .WithHostPort(9080)
+                     .WithConfiguration(yarp =>
+                     {
+                        yarp.AddRoute("{**catch-all}", externalFrontend);
+                     });
+
 //https://github.com/dotnet/aspire/issues/13674
 builder.Eventing.Subscribe<BeforeStartEvent>((_, _) =>
 {
    gateway.WithHostHttpsPort(8443);
+   externalGateway.WithHostHttpsPort(9443);
    return Task.CompletedTask;
 });
 

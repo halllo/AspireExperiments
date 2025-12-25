@@ -105,17 +105,13 @@ app.MapGet("/logout", async (HttpContext httpContext) =>
 		authenticationSchemes: ["Cookies", "oidc"]);
 }).RequireAuthorization();
 
-
+app.MapPost("/echo", async (HttpContext httpContext) =>
+{
+	httpContext.Request.EnableBuffering();
+	using var reader = new StreamReader(httpContext.Request.Body, leaveOpen: true);
+	var body = await reader.ReadToEndAsync();
+	httpContext.Request.Body.Position = 0;
+	return Results.Text(body, "application/json");
+}).RequireAuthorization();
 
 app.Run();
-
-public class WeatherForecast
-{
-	public DateOnly Date { get; set; }
-
-	public int TemperatureC { get; set; }
-
-	public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-
-	public string? Summary { get; set; }
-}

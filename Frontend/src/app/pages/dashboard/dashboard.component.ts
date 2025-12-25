@@ -9,12 +9,12 @@ import { environment } from '../../../environments/environment.development';
     <section class="">
       <h1>Dashboard</h1>
       <p>Welcome to this experimental view.</p>
-      @if (me.isLoading()) {
+      @if (profile.isLoading()) {
         Loading...
-      } @else if (me.error()) {
+      } @else if (profile.error()) {
         Error
       } @else {
-        <pre class="scrollable-pre">{{ me.value() | json }}</pre>
+        <pre class="scrollable-pre">{{ profile.value() | json }}</pre>
       }
       <my-element></my-element>
     </section>
@@ -34,6 +34,5 @@ import { environment } from '../../../environments/environment.development';
   imports: [JsonPipe],
 })
 export class DashboardComponent {
-  private readonly http = inject(HttpClient);
-  protected readonly me = httpResource(() => environment.apiPath + '/profile');
+  protected readonly profile = httpResource(() => environment.apiPath + '/profile');
 }

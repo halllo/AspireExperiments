@@ -1,6 +1,6 @@
 ---
 description: 'Angular-specific coding standards and best practices'
-applyTo: 'Frontend/**, Element/**'
+applyTo: 'Frontend/**, Element/**, ExternalFrontend/**'
 ---
 
 # Persona
