@@ -1,7 +1,5 @@
-import { httpResource } from '@angular/common/http';
-import { Component, signal } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { environment } from './environments/environment';
-import { JsonPipe } from '@angular/common';
 
 @Component({
   selector: 'app-root',
@@ -9,31 +7,15 @@ import { JsonPipe } from '@angular/common';
   <main class="main">
     <div class="content">
       <h1>External Frontend</h1>
-      @if (profile.isLoading()) {
-        Loading...
-      } @else if (profile.error()) {
-        <pre class="scrollable-pre" style="color: red;">{{ profile.error() | json }}</pre>
-      } @else {
-        <pre class="scrollable-pre">{{ profile.value() | json }}</pre>
-      }
+      <my-element></my-element>
       <button (click)="csrfPost()">csrf post</button>
       <button (click)="csrfGet()">csrf get</button>
     </div>
   </main>`,
-  styles: `
-    .scrollable-pre {
-      max-height: 300px;
-      overflow: auto;
-      background: #f8f8f8;
-      border: 1px solid #ddd;
-      padding: 1em;
-      border-radius: 4px;
-    }
-  `,
-  imports: [JsonPipe],
+  styles: [``],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class App {
-  protected readonly profile = httpResource(() => environment.apiPath + '/profile');
 
   csrfPost() {
     const form = document.createElement('form');

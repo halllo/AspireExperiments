@@ -18,7 +18,10 @@ builder.Services.AddAuthentication(options =>
 		options.DefaultScheme = "Cookies";
 		options.DefaultChallengeScheme = "oidc";
 	})
-	.AddCookie("Cookies")
+	.AddCookie("Cookies", options => 
+	{
+		options.Cookie.SameSite = SameSiteMode.Strict;
+	})
 	.AddOpenIdConnect("oidc", options =>
 	{
 		options.Authority = "https://localhost:8443/identity/";
@@ -39,6 +42,17 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddCors(options =>
+{
+	options.AddDefaultPolicy(policy =>
+	{
+		policy.WithOrigins(["https://localhost:9443"])
+			  .WithMethods(["GET", "POST", "PUT", "DELETE"])
+			  .WithHeaders(["content-type", "x-csrf"])
+			  .AllowCredentials();
+	});
+});
+
 var app = builder.Build();
 
 app.UsePathBase("/backend");
@@ -51,6 +65,8 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 	| ForwardedHeaders.XForwardedHost
 	| ForwardedHeaders.XForwardedProto
 });
+
+app.UseCors();
 
 if (app.Environment.IsDevelopment())
 {
@@ -82,17 +98,6 @@ app.MapGet("/", (HttpContext context) =>
 	return Results.Text("Hello from Backend!");
 });
 
-app.MapGet("/profile", (HttpContext httpContext) =>
-{
-	var lookup = httpContext.User.Claims.ToLookup(c => c.Type, c => c.Value);
-	var claimsDict = new Dictionary<string, object>();
-	foreach (var group in lookup)
-	{
-		claimsDict[group.Key] = group.Count() == 1 ? group.First() : group.ToArray();
-	}
-	return Results.Json(claimsDict);
-}).RequireAuthorization();
-
 app.MapGet("/login", (HttpContext httpContext) =>
 {
 	return Results.Redirect("/frontend/");
@@ -101,17 +106,43 @@ app.MapGet("/login", (HttpContext httpContext) =>
 app.MapGet("/logout", async (HttpContext httpContext) =>
 {
 	return Results.SignOut(
-		properties: new AuthenticationProperties { RedirectUri = "/frontend/" }, 
+		properties: new AuthenticationProperties { RedirectUri = "/frontend/" },
 		authenticationSchemes: ["Cookies", "oidc"]);
 }).RequireAuthorization();
 
-app.MapPost("/echo", async (HttpContext httpContext) =>
+var apiGroup = app.MapGroup("")
+	.RequireAuthorization()
+	.AddEndpointFilter(async (context, next) =>
+	{
+		// CSRF protection using Anti-forgery Header
+		if (!context.HttpContext.Request.Headers.ContainsKey("x-csrf"))
+		{
+			return Results.BadRequest("Missing X-CSRF header");
+		}
+		else
+		{
+			return await next(context);
+		}
+	});
+
+apiGroup.MapGet("/profile", (HttpContext httpContext) =>
+{
+	var lookup = httpContext.User.Claims.ToLookup(c => c.Type, c => c.Value);
+	var claimsDict = new Dictionary<string, object>();
+	foreach (var group in lookup)
+	{
+		claimsDict[group.Key] = group.Count() == 1 ? group.First() : group.ToArray();
+	}
+	return Results.Json(claimsDict);
+});
+
+apiGroup.MapPost("/echo", async (HttpContext httpContext) =>
 {
 	httpContext.Request.EnableBuffering();
 	using var reader = new StreamReader(httpContext.Request.Body, leaveOpen: true);
 	var body = await reader.ReadToEndAsync();
 	httpContext.Request.Body.Position = 0;
 	return Results.Text(body, "application/json");
-}).RequireAuthorization();
+});
 
 app.Run();

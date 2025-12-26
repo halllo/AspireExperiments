@@ -97,8 +97,8 @@ import { environment } from '../../environments/environment';
       background: #eee;
     }
   `],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, RouterModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderComponent {
   protected readonly navigationItems = [
@@ -114,7 +114,10 @@ export class HeaderComponent {
 
   private async checkAuth() {
     try {
-      const res = await fetch(environment.apiPath + '/profile', { credentials: 'include' });
+      const res = await fetch(environment.apiPath + '/profile', { 
+        headers: { 'X-CSRF': '1' },
+        credentials: 'include' 
+      });
       if (res.ok) {
         this.isLoggedIn.set(true);
         this.userProfile.set(await res.json());
