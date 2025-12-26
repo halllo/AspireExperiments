@@ -1,3 +1,3 @@
 export const environment = {
-    apiPath: 'https://localhost:8443/backend'
+    apiPath: 'https://gateway-aspireexperiments.dev.localhost:8443/backend'
 };

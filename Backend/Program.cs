@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -18,13 +19,13 @@ builder.Services.AddAuthentication(options =>
 		options.DefaultScheme = "Cookies";
 		options.DefaultChallengeScheme = "oidc";
 	})
-	.AddCookie("Cookies", options => 
+	.AddCookie("Cookies", options =>
 	{
 		options.Cookie.SameSite = SameSiteMode.Strict;
 	})
 	.AddOpenIdConnect("oidc", options =>
 	{
-		options.Authority = "https://localhost:8443/identity/";
+		options.Authority = "https://gateway-aspireexperiments.dev.localhost:8443/identity/";
 
 		options.ClientId = "web";
 		options.ClientSecret = "secret";
@@ -38,6 +39,16 @@ builder.Services.AddAuthentication(options =>
 		options.MapInboundClaims = false; // Don't rename claim types
 
 		options.SaveTokens = true;
+
+		options.Events.OnTicketReceived = context =>
+		{
+			// Remove the token values from the cookie to reduce its size.
+			context.Properties?.UpdateTokenValue("access_token", string.Empty); //we keep the id token for logout
+			context.Properties?.UpdateTokenValue("token_type", string.Empty);
+			context.Properties?.UpdateTokenValue("expires_at", string.Empty);
+			context.Properties?.Items.Remove(".checkSessionIFrame");
+			return Task.CompletedTask;
+		};
 	});
 
 builder.Services.AddAuthorization();
@@ -46,10 +57,10 @@ builder.Services.AddCors(options =>
 {
 	options.AddDefaultPolicy(policy =>
 	{
-		policy.WithOrigins(["https://localhost:9443"])
-			  .WithMethods(["GET", "POST", "PUT", "DELETE"])
-			  .WithHeaders(["content-type", "x-csrf"])
-			  .AllowCredentials();
+		// policy.WithOrigins(["https://localhost:9443"])
+		// 	  .WithMethods(["GET", "POST", "PUT", "DELETE"])
+		// 	  .WithHeaders(["content-type", "x-csrf"])
+		// 	  .AllowCredentials();
 	});
 });
 
@@ -114,7 +125,7 @@ var apiGroup = app.MapGroup("")
 	.RequireAuthorization()
 	.AddEndpointFilter(async (context, next) =>
 	{
-		// CSRF protection using Anti-forgery Header
+		//Additional CSRF protection using Anti-forgery Header
 		if (!context.HttpContext.Request.Headers.ContainsKey("x-csrf"))
 		{
 			return Results.BadRequest("Missing X-CSRF header");
@@ -125,8 +136,9 @@ var apiGroup = app.MapGroup("")
 		}
 	});
 
-apiGroup.MapGet("/profile", (HttpContext httpContext) =>
+apiGroup.MapGet("/profile", (HttpContext httpContext, ILogger<Program> logger) =>
 {
+	logger.LogInformation("Getting profile for user {user}", httpContext.User.Name() ?? "unknown");
 	var lookup = httpContext.User.Claims.ToLookup(c => c.Type, c => c.Value);
 	var claimsDict = new Dictionary<string, object>();
 	foreach (var group in lookup)
@@ -136,8 +148,9 @@ apiGroup.MapGet("/profile", (HttpContext httpContext) =>
 	return Results.Json(claimsDict);
 });
 
-apiGroup.MapPost("/echo", async (HttpContext httpContext) =>
+apiGroup.MapPost("/echo", async (HttpContext httpContext, ILogger<Program> logger) =>
 {
+	logger.LogInformation("Echo endpoint called by user {user}", httpContext.User.Name() ?? "unknown");
 	httpContext.Request.EnableBuffering();
 	using var reader = new StreamReader(httpContext.Request.Body, leaveOpen: true);
 	var body = await reader.ReadToEndAsync();
@@ -146,3 +159,11 @@ apiGroup.MapPost("/echo", async (HttpContext httpContext) =>
 });
 
 app.Run();
+
+static class ClaimsPrincipalExtensions
+{
+	extension(ClaimsPrincipal user)
+	{
+        public string? Name() => user.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
+    }
+}

@@ -23,8 +23,8 @@ public static class Config
             ClientId = "web",
             ClientSecrets = { new Secret("secret".Sha256()) },
             AllowedGrantTypes = GrantTypes.Code,
-            RedirectUris = { "https://localhost:8443/backend/signin-oidc" },
-            PostLogoutRedirectUris = { "https://localhost:8443/backend/signout-callback-oidc" },
+            RedirectUris = { "https://gateway-aspireexperiments.dev.localhost:8443/backend/signin-oidc" },
+            PostLogoutRedirectUris = { "https://gateway-aspireexperiments.dev.localhost:8443/backend/signout-callback-oidc" },
             AllowedScopes =
             {
                 IdentityServerConstants.StandardScopes.OpenId,
