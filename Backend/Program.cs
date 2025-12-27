@@ -109,9 +109,31 @@ app.MapGet("/", (HttpContext context) =>
 	return Results.Text("Hello from Backend!");
 });
 
-app.MapGet("/login", (HttpContext httpContext) =>
+app.MapGet("/login", (HttpContext httpContext, bool redirectback = true) =>
 {
-	return Results.Redirect("/frontend/");
+	if (redirectback)
+	{
+		return Results.Redirect("/frontend/");
+	}
+	else
+	{
+		var html = """
+		<!DOCTYPE html>
+		<html lang="en">
+		<head>
+			<meta charset="UTF-8">
+			<title>Login Successful</title>
+		</head>
+		<body>
+			<script>
+				window.parent.postMessage({ type: 'loggedin' }, '*');
+			</script>
+			<p>Login successful</p>
+		</body>
+		</html>
+		""";
+		return Results.Content(html, "text/html");
+	}
 }).RequireAuthorization();
 
 app.MapGet("/logout", async (HttpContext httpContext) =>
@@ -164,6 +186,6 @@ static class ClaimsPrincipalExtensions
 {
 	extension(ClaimsPrincipal user)
 	{
-        public string? Name() => user.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
-    }
+		public string? Name() => user.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
+	}
 }
