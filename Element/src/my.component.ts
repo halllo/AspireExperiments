@@ -42,6 +42,7 @@ export class MyComponent {
   }));
 
   protected backgroundLogin() {
+    console.log('Starting background login ...');
     const iframeId = 'my-element-login-iframe';
     document.getElementById(iframeId)?.remove();
 

@@ -172,11 +172,18 @@ apiGroup.MapGet("/profile", (HttpContext httpContext, ILogger<Program> logger) =
 
 apiGroup.MapPost("/echo", async (HttpContext httpContext, ILogger<Program> logger) =>
 {
-	logger.LogInformation("Echo endpoint called by user {user}", httpContext.User.Name() ?? "unknown");
+	logger.LogInformation("Echo (POST) endpoint called by user {user}", httpContext.User.Name() ?? "unknown");
 	httpContext.Request.EnableBuffering();
 	using var reader = new StreamReader(httpContext.Request.Body, leaveOpen: true);
 	var body = await reader.ReadToEndAsync();
 	httpContext.Request.Body.Position = 0;
+	return Results.Text(body, "application/json");
+});
+
+apiGroup.MapGet("/echo", async (HttpContext httpContext, ILogger<Program> logger) =>
+{
+	logger.LogInformation("Echo (GET) endpoint called by user {user}", httpContext.User.Name() ?? "unknown");
+	var body = "GET does not have a body";
 	return Results.Text(body, "application/json");
 });
 
