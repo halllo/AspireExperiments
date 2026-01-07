@@ -1,9 +1,29 @@
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using Serilog;
 
 public static class OpenTelemetryExtensions
 {
+    /// <summary>
+    /// Configures Serilog to use OpenTelemetry as a sink.
+    /// </summary>
+    public static void ConfigureOpenTelemetry(LoggerConfiguration cfg, IConfiguration configuration)
+    {
+        var useOtlpExporter = !string.IsNullOrWhiteSpace(configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+        if (useOtlpExporter)
+        {
+            cfg.WriteTo.OpenTelemetry(o =>
+            {
+                o.Endpoint = configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+                o.Protocol = Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc;
+            });
+        }
+    }
+
+    /// <summary>
+    /// Configures OpenTelemetry for logging, metrics, and tracing.
+    /// </summary>
     public static TBuilder ConfigureOpenTelemetry<TBuilder>(TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         builder.Logging.AddOpenTelemetry(logging =>

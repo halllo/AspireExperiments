@@ -4,8 +4,16 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Scalar.AspNetCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((ctx, services, cfg) =>
+{
+	cfg.ReadFrom.Configuration(ctx.Configuration);
+	cfg.Enrich.WithProperty("EnvironmentName", ctx.HostingEnvironment.EnvironmentName);
+	OpenTelemetryExtensions.ConfigureOpenTelemetry(cfg, ctx.Configuration);
+});
 
 OpenTelemetryExtensions.ConfigureOpenTelemetry(builder);
 
