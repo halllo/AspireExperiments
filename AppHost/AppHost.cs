@@ -10,12 +10,12 @@ var frontend = builder.AddViteApp("Frontend", "../Frontend");
 
 var appHostDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
 
-var prometheus = builder.AddContainer("prometheus", "prom/prometheus")
+var prometheus = builder.AddContainer("Prometheus", "prom/prometheus")
    .WithBindMount(Path.Combine(appHostDirectory, "observability", "prometheus", "prometheus.yml"), "/etc/prometheus/prometheus.yml", isReadOnly: true)
    .WithArgs("--config.file=/etc/prometheus/prometheus.yml")
    .WithHttpEndpoint(port: 9090, targetPort: 9090);
 
-var grafana = builder.AddContainer("grafana", "grafana/grafana")
+var grafana = builder.AddContainer("Grafana", "grafana/grafana")
    .WithEnvironment("GF_SECURITY_ADMIN_USER", "admin")
    .WithEnvironment("GF_SECURITY_ADMIN_PASSWORD", "admin")
    .WithBindMount(Path.Combine(appHostDirectory, "observability", "grafana", "provisioning"), "/etc/grafana/provisioning", isReadOnly: true)

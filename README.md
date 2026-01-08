@@ -1,6 +1,6 @@
 # AspireExperiments
 
-This experimental web application explores dotnet aspire with a dotnet backend, angular frontend, angular custom element, and yarp gateway, with static files.
+This experimental web application explores dotnet aspire with a dotnet backend, angular frontend, angular custom element, cookie authentication with csrf protection, yarp gateway with static files, open telemetry with prometheus and grafana.
 
 ## Problems
 
