@@ -35,22 +35,24 @@ public static class OpenTelemetryExtensions
         builder.Services.AddOpenTelemetry()
             .WithMetrics(metrics =>
             {
-                metrics.AddAspNetCoreInstrumentation()
+                metrics
+                    .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()
-                    ;
+                    .AddMeter("Backend")
+                    .AddPrometheusExporter();
             })
             .WithTracing(tracing =>
             {
-                const string HealthEndpointPath = "/health";
-                const string AlivenessEndpointPath = "/alive";
-                tracing.AddSource(builder.Environment.ApplicationName)
+                string[] excludedRequestPaths = ["/health", "/alive", "/metrics"];
+                tracing
+                    .AddSource(builder.Environment.ApplicationName)
                     .AddAspNetCoreInstrumentation(tracing =>
-                        // Exclude health check requests from tracing
+                    {
                         tracing.Filter = context =>
-                            !context.Request.Path.StartsWithSegments(HealthEndpointPath)
-                            && !context.Request.Path.StartsWithSegments(AlivenessEndpointPath)
-                    )
+                            !excludedRequestPaths.Any(excludedPath =>
+                                context.Request.Path.StartsWithSegments(excludedPath));
+                    })
                     // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                     //.AddGrpcClientInstrumentation()
                     .AddHttpClientInstrumentation();

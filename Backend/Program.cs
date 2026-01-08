@@ -1,3 +1,4 @@
+using System.Diagnostics.Metrics;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -16,6 +17,14 @@ builder.Host.UseSerilog((ctx, services, cfg) =>
 });
 
 OpenTelemetryExtensions.ConfigureOpenTelemetry(builder);
+builder.Services.AddSingleton(sp => new Meter("Backend"));
+builder.Services.AddKeyedSingleton("profile_checks_total", (sp, _) =>
+{
+	var meter = sp.GetRequiredService<Meter>();
+	return meter.CreateCounter<long>(
+		name: "profile_checks_total",
+		description: "Total number of profile endpoint checks");
+});
 
 builder.Services.AddHealthChecks()
 	.AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
@@ -108,6 +117,8 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapPrometheusScrapingEndpoint();
+
 app.MapGet("/", (HttpContext context) =>
 {
 	//redirect requests to /backend to /backend/
@@ -166,8 +177,13 @@ var apiGroup = app.MapGroup("")
 		}
 	});
 
-apiGroup.MapGet("/profile", (HttpContext httpContext, ILogger<Program> logger) =>
+apiGroup.MapGet("/profile", (
+	HttpContext httpContext,
+	ILogger<Program> logger,
+	[FromKeyedServices("profile_checks_total")] Counter<long> profileCheckCounter) =>
 {
+	profileCheckCounter.Add(1);
+
 	logger.LogInformation("Getting profile for user {user}", httpContext.User.Name() ?? "unknown");
 	var lookup = httpContext.User.Claims.ToLookup(c => c.Type, c => c.Value);
 	var claimsDict = new Dictionary<string, object>();

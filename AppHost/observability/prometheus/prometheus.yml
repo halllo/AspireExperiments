@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: "backend_via_gateway"
+    metrics_path: "/backend/metrics"
+    scheme: "http"
+    static_configs:
+      - targets:
+          # Gateway is bound to host port 8080 in AppHost.cs
+          # Prometheus runs in a container, so we scrape the host via Podman’s host.containers.internal.
+          - "host.containers.internal:8080"
